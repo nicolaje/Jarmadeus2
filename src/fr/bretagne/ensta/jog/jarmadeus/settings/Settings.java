@@ -26,22 +26,12 @@ public class Settings {
 	 */
 	private int mode;
 	
-	/**
-	 * Chose if we want to actually "see" the simulator.
-	 * If for whatever reason (not enough resources, working on a headless machine...)
-	 * we want to simulate in text mode, it won't create the actual view.
-	 * // TODO:
-	 * It has to be tested with Blender Morse: can we not open the view? 
-	 */
-	private boolean headless;
-	
 	
 	// TODO: handle concurrency correctly
 	private Settings(){
 		try {
 			Configuration p=new PropertiesConfiguration(FILE_NAME);
 			this.mode=p.getInt("mode");
-			this.headless=p.getBoolean("headless");
 		} catch (ConfigurationException e) {
 			// TODO: File does not exist, or ini file not correctly written: default config!
 		}
