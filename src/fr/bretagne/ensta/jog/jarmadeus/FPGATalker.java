@@ -2,6 +2,7 @@ package fr.bretagne.ensta.jog.jarmadeus;
 
 import fr.bretagne.ensta.jog.jarmadeus.hard.HardFPGATalker;
 import fr.bretagne.ensta.jog.jarmadeus.settings.Settings;
+import fr.bretagne.ensta.jog.jarmadeus.virtual.VirtualFPGATalker;
 
 public abstract class FPGATalker {
 	
@@ -15,10 +16,8 @@ public abstract class FPGATalker {
 		switch(Settings.getSettings().getMode()){
 		case Settings.HARDWARE:
 			return new HardFPGATalker();
-		case Settings.VIRTUAL_2D:
-			return new
-		case Settings.VIRTUAL_3D:
-			break;
+		case Settings.VIRTUAL:
+			return new VirtualFPGATalker();
 		default:
 			return null;
 		}

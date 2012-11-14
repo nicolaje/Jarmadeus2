@@ -13,16 +13,14 @@ public class Settings {
 	public static final String FILE_NAME="settings.ini";
 	
 	public static final int HARDWARE=1;
-	public static final int VIRTUAL_2D=2;
-	public static final int VIRTUAL_3D=3;
+	public static final int VIRTUAL=2;
 	
 	private static Settings settings;
 	
 	/**
 	 * Either:
 	 * - HARDWARE (talks to the Armadeus)
-	 * - VIRTUAL_2D (talks to the 2D "VirtualJog2" Simulator)
-	 * - VIRTUAL_3D (talks to the Blender Morse 3D simulator)
+	 * - VIRTUAL (talks to the a simulator over a socket connection, using a defined protocol)
 	 */
 	private int mode;
 	
@@ -34,6 +32,8 @@ public class Settings {
 			this.mode=p.getInt("mode");
 		} catch (ConfigurationException e) {
 			// TODO: File does not exist, or ini file not correctly written: default config!
+			// throw error
+			System.exit(1);
 		}
 	}
 	
