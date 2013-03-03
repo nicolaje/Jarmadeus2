@@ -13,6 +13,8 @@ public class Robot {
 	private PrintWriter writer;
 	private BufferedReader reader;
 
+	private double speedLeft, speedRight;
+	
 	public Robot() throws UnknownHostException, IOException {
 		robotName = Jarmadeus2.getInstance().getRobotName();
 		ipAdd = Jarmadeus2.getInstance().getServerAddress();
@@ -20,6 +22,9 @@ public class Robot {
 		Socket socket = new Socket(ipAdd, 4000);
 		writer=new PrintWriter(socket.getOutputStream());
 		reader=new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		
+		speedLeft=0;
+		speedRight=0;
 	}
 
 	public double getIRBack() {
@@ -83,63 +88,87 @@ public class Robot {
 	}
 
 	public double getSonarLeft() {
-		writer.write("SONARLEFTLEFT "+robotName+"_sonarLeftLeft get_local_data");
+		writer.write("SONARLEFT "+robotName+"_sonarLeft get_local_data");
 		try {
 			String answer=reader.readLine();
 			return parseLaserData(answer);
 		} catch (IOException e) {
-			System.err.println("Couldn't retrieve SonarLeftLeft data sensor at: ");
+			System.err.println("Couldn't retrieve SonarLeft data sensor at: ");
 			e.printStackTrace();
 		}
 		return 0;
 	}
 
 	public double getSonarFront() {
-		writer.write("SONARLEFTLEFT "+robotName+"_sonarLeftLeft get_local_data");
+		writer.write("SONARFRONT "+robotName+"_sonarFront get_local_data");
 		try {
 			String answer=reader.readLine();
 			return parseLaserData(answer);
 		} catch (IOException e) {
-			System.err.println("Couldn't retrieve SonarLeftLeft data sensor at: ");
+			System.err.println("Couldn't retrieve SonarLeft data sensor at: ");
 			e.printStackTrace();
 		}
 		return 0;
 	}
 
 	public double getSonarRight() {
-		writer.write("SONARLEFTLEFT "+robotName+"_sonarLeftLeft get_local_data");
+		writer.write("SONARRIGHT "+robotName+"_sonarRight get_local_data");
 		try {
 			String answer=reader.readLine();
 			return parseLaserData(answer);
 		} catch (IOException e) {
-			System.err.println("Couldn't retrieve SonarLeftLeft data sensor at: ");
+			System.err.println("Couldn't retrieve SonarRight data sensor at: ");
 			e.printStackTrace();
 		}
 		return 0;
 	}
 
 	public double getSonarRightRight() {
-		writer.write("SONARLEFTLEFT "+robotName+"_sonarLeftLeft get_local_data");
+		writer.write("SONARRIGHTRIGHT "+robotName+"_sonarRightRight get_local_data");
 		try {
 			String answer=reader.readLine();
 			return parseLaserData(answer);
 		} catch (IOException e) {
-			System.err.println("Couldn't retrieve SonarLeftLeft data sensor at: ");
+			System.err.println("Couldn't retrieve SonarRightRight data sensor at: ");
 			e.printStackTrace();
 		}
 		return 0;
 	}
 
 	public double getOdometerLeft() {
-
+		writer.write("ODOLEFT "+robotName+"_odometerLeft get_local_data");
+		try {
+			String answer=reader.readLine();
+			return parseOdometerData(answer);
+		} catch (IOException e) {
+			System.err.println("Couldn't retrieve OdometerLeft data sensor at: ");
+			e.printStackTrace();
+		}
+		return 0;
 	}
 
 	public double getOdometerRight() {
-
+		writer.write("ODORIGHT "+robotName+"_odometerRight get_local_data");
+		try {
+			String answer=reader.readLine();
+			return parseOdometerData(answer);
+		} catch (IOException e) {
+			System.err.println("Couldn't retrieve OdometerRight data sensor at: ");
+			e.printStackTrace();
+		}
+		return 0;
 	}
 
 	public double getHeading() {
-
+		writer.write("ORIENTATION "+robotName+"_orientation get_local_data");
+		try {
+			String answer=reader.readLine();
+			return parseOrientation(answer);
+		} catch (IOException e) {
+			System.err.println("Couldn't retrieve OdometerRight data sensor at: ");
+			e.printStackTrace();
+		}
+		return 0;
 	}
 
 	public void setSpeedLeft(double speed) {
@@ -159,6 +188,10 @@ public class Robot {
 	}
 	
 	private double parseOdometerData(String rawData){
+		
+	}
+	
+	private double parseOrientation(String rawData){
 		
 	}
 }
