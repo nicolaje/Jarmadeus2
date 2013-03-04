@@ -2,6 +2,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -148,8 +149,13 @@ public class Robot {
 			Socket odoLeftSocket=new Socket(this.ipAdd,odometerLeftPort);
 			Socket odoRightSocket=new Socket(this.ipAdd,odometerRightPort);
 			
+			odometerLeft=new BufferedReader(new InputStreamReader(odoLeftSocket.getInputStream()));
+			odometerRight=new BufferedReader(new InputStreamReader(odoRightSocket.getInputStream()));
+			
 			// Channel to the actuator:
 			Socket actuatorSocket=new Socket(this.ipAdd,actuatorPort);
+			
+			actuator=new PrintWriter(new OutputStreamWriter(actuatorSocket.getOutputStream()));
 		} catch (UnknownHostException e) {
 			System.err.println("Wrong Simulation server IP Adress was given when initializing the sensors, at: ");
 			e.printStackTrace();
@@ -320,6 +326,7 @@ public class Robot {
 		public void run() {
 			try {
 				while (!exitJVM) {
+					
 					// Do not go in a blocking state (readLine() is blocking) if
 					// not at least one buffer
 					// is not empty. If we go in a blocking sate while the JVM
