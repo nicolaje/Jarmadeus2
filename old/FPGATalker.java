@@ -32,6 +32,7 @@ public class FPGATalker {
 	private native char fpgareadU16(char regaddr, boolean debug);
 	private native int  fpgawriteU16(char regaddr, char data, boolean debug);
 	private native short fpgareadS16(char regaddr, boolean debug);
+	
 	/* Dynamic Library Loading  */
 	static {
 		System.out.println("load ...");
@@ -39,6 +40,7 @@ public class FPGATalker {
 		System.loadLibrary("jfpga");
 		System.out.println("libjfpga.so SUCCEFULLY LOADED");
 	}
+	
 	public FPGATalker()
 	{
 		this.debugMode=true;
