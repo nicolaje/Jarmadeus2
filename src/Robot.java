@@ -116,6 +116,48 @@ public class Robot {
 			}
 		}
 
+		// Open the sockets to the sensors
+		try {
+			// Channels to the sonar sensors
+			Socket sonarLeftLeftSocket=new Socket(this.ipAdd, sonarLeftLeftPort);
+			Socket sonarLeftSocket=new Socket(this.ipAdd, sonarLeftPort);
+			Socket sonarFrontSocket=new Socket(this.ipAdd, sonarFrontPort);
+			Socket sonarRightSocket=new Socket(this.ipAdd, sonarRightPort);
+			Socket sonarRightRightSocket=new Socket(this.ipAdd, sonarRightRightPort);
+			
+			sonarLeftLeft=new BufferedReader(new InputStreamReader(sonarLeftLeftSocket.getInputStream()));
+			sonarLeft=new BufferedReader(new InputStreamReader(sonarLeftSocket.getInputStream()));
+			sonarFront=new BufferedReader(new InputStreamReader(sonarFrontSocket.getInputStream()));
+			sonarRight=new BufferedReader(new InputStreamReader(sonarRightSocket.getInputStream()));
+			sonarRightRight=new BufferedReader(new InputStreamReader(sonarRightRightSocket.getInputStream()));
+			
+			// Channels to the IR sensors
+			Socket irLeftSocket=new Socket(this.ipAdd, irLeftPort);
+			Socket irFrontSocket=new Socket(this.ipAdd, irFrontPort);
+			Socket irRightSocket=new Socket(this.ipAdd, irRightPort);
+			Socket irBackSocket=new Socket(this.ipAdd, irBackPort);
+			
+			irLeft=new BufferedReader(new InputStreamReader(irLeftSocket.getInputStream()));
+			irFront=new BufferedReader(new InputStreamReader(irFrontSocket.getInputStream()));
+			irRight=new BufferedReader(new InputStreamReader(irRightSocket.getInputStream()));
+			
+			// Channels to the Compass sensor:
+			Socket poseSocket=new Socket(this.ipAdd,posePort);
+			
+			// Channels to the Odometer sensors:
+			Socket odoLeftSocket=new Socket(this.ipAdd,odometerLeftPort);
+			Socket odoRightSocket=new Socket(this.ipAdd,odometerRightPort);
+			
+			// Channel to the actuator:
+			Socket actuatorSocket=new Socket(this.ipAdd,actuatorPort);
+		} catch (UnknownHostException e) {
+			System.err.println("Wrong Simulation server IP Adress was given when initializing the sensors, at: ");
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.err.println("IO Exception when initializing the sensors at: ");
+			e.printStackTrace();
+		}
+		
 		// updates values of sonar sensors
 		// we will want all the sonars to have the same update frequency,
 		// otherwise this
@@ -133,159 +175,57 @@ public class Robot {
 			@Override
 			public void run() {
 				exitJVM = true;
+				actuator.close();
 			}
 		});
 	}
 
 	public double getIRBack() {
-		writer.write("IRBACK " + robotName + "_irBack get_local_data");
-		try {
-			String answer = reader.readLine();
-			return convertIRDistance(parseLaserData(answer));
-		} catch (IOException e) {
-			System.err.println("Couldn't retrieve IRBack data sensor at: ");
-			e.printStackTrace();
-		}
-		return 0;
+		return irBackVal;
 	}
 
 	public double getIRLeft() {
-		writer.write("IRLEFT " + robotName + "_irLeft get_local_data");
-		try {
-			String answer = reader.readLine();
-			return convertIRDistance(parseLaserData(answer));
-		} catch (IOException e) {
-			System.err.println("Couldn't retrieve IRLeft data sensor at: ");
-			e.printStackTrace();
-		}
-		return 0;
+		return irLeftVal;
 	}
 
 	public double getIRRight() {
-		writer.write("IRRight " + robotName + "_irRight get_local_data");
-		try {
-			String answer = reader.readLine();
-			return convertIRDistance(parseLaserData(answer));
-		} catch (IOException e) {
-			System.err.println("Couldn't retrieve IRRight data sensor at: ");
-			e.printStackTrace();
-		}
-		return 0;
+		return irRightVal;
 	}
 
 	public double getIRFront() {
-		writer.write("IRFRONT " + robotName + "_irFront get_local_data");
-		try {
-			String answer = reader.readLine();
-			return convertIRDistance(parseLaserData(answer));
-		} catch (IOException e) {
-			System.err.println("Couldn't retrieve IRFront data sensor at: ");
-			e.printStackTrace();
-		}
-		return 0;
+		return irFrontVal;
 	}
 
 	public double getSonarLeftLeft() {
-		writer.write("SONARLEFTLEFT " + robotName
-				+ "_sonarLeftLeft get_local_data");
-		try {
-			String answer = reader.readLine();
-			return parseLaserData(answer);
-		} catch (IOException e) {
-			System.err
-					.println("Couldn't retrieve SonarLeftLeft data sensor at: ");
-			e.printStackTrace();
-		}
-		return 0;
+		return sonarLeftLeftVal;
 	}
 
 	public double getSonarLeft() {
-		writer.write("SONARLEFT " + robotName + "_sonarLeft get_local_data");
-		try {
-			String answer = reader.readLine();
-			return parseLaserData(answer);
-		} catch (IOException e) {
-			System.err.println("Couldn't retrieve SonarLeft data sensor at: ");
-			e.printStackTrace();
-		}
-		return 0;
+		return sonarLeftVal;
 	}
 
 	public double getSonarFront() {
-		writer.write("SONARFRONT " + robotName + "_sonarFront get_local_data");
-		try {
-			String answer = reader.readLine();
-			return parseLaserData(answer);
-		} catch (IOException e) {
-			System.err.println("Couldn't retrieve SonarLeft data sensor at: ");
-			e.printStackTrace();
-		}
-		return 0;
+		return sonarFrontVal;
 	}
 
 	public double getSonarRight() {
-		writer.write("SONARRIGHT " + robotName + "_sonarRight get_local_data");
-		try {
-			String answer = reader.readLine();
-			return parseLaserData(answer);
-		} catch (IOException e) {
-			System.err.println("Couldn't retrieve SonarRight data sensor at: ");
-			e.printStackTrace();
-		}
-		return 0;
+		return sonarRightVal;
 	}
 
 	public double getSonarRightRight() {
-		writer.write("SONARRIGHTRIGHT " + robotName
-				+ "_sonarRightRight get_local_data");
-		try {
-			String answer = reader.readLine();
-			return parseLaserData(answer);
-		} catch (IOException e) {
-			System.err
-					.println("Couldn't retrieve SonarRightRight data sensor at: ");
-			e.printStackTrace();
-		}
-		return 0;
+		return sonarRightRightVal;
 	}
 
 	public double getOdometerLeft() {
-		writer.write("ODOLEFT " + robotName + "_odometerLeft get_local_data");
-		try {
-			String answer = reader.readLine();
-			return parseOdometerData(answer);
-		} catch (IOException e) {
-			System.err
-					.println("Couldn't retrieve OdometerLeft data sensor at: ");
-			e.printStackTrace();
-		}
-		return 0;
+		return leftOdometer;
 	}
 
 	public double getOdometerRight() {
-		writer.write("ODORIGHT " + robotName + "_odometerRight get_local_data");
-		try {
-			String answer = reader.readLine();
-			return parseOdometerData(answer);
-		} catch (IOException e) {
-			System.err
-					.println("Couldn't retrieve OdometerRight data sensor at: ");
-			e.printStackTrace();
-		}
-		return 0;
+		return rightOdometer;
 	}
 
 	public double getHeading() {
-		writer.write("ORIENTATION " + robotName + "_orientation get_local_data");
-		try {
-			String answer = reader.readLine();
-			return parseOrientation(answer);
-		} catch (IOException e) {
-			System.err
-					.println("Couldn't retrieve OdometerRight data sensor at: ");
-			e.printStackTrace();
-		}
-		return 0;
+		return heading;
 	}
 
 	public void setSpeedLeft(double speed) {
@@ -408,6 +348,15 @@ public class Robot {
 				System.err.println("Couldn't sleep in IRUpdater at: ");
 				e.printStackTrace();
 			}
+			try {
+				irLeft.close();
+				irFront.close();
+				irRight.close();
+				irBack.close();
+			} catch (IOException e) {
+				System.err.println("Couldn't close IR streams at: ");
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -445,6 +394,16 @@ public class Robot {
 					e.printStackTrace();
 				}
 			}
+			try {
+				sonarLeftLeft.close();
+				sonarLeft.close();
+				sonarFront.close();
+				sonarRight.close();
+				sonarRightRight.close();
+			} catch (IOException e) {
+				System.err.println("Couldn't close sonar streams at: ");
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -468,6 +427,12 @@ public class Robot {
 					System.err.println("Couldn't sleep in PoseUpdater at: ");
 					e.printStackTrace();
 				}
+			}
+			try {
+				pose.close();
+			} catch (IOException e) {
+				System.err.println("Couldn't pose sonar streams at: ");
+				e.printStackTrace();
 			}
 		}
 	}
@@ -494,6 +459,13 @@ public class Robot {
 					System.err.println("Couldn't sleep in Odometer at: ");
 					e.printStackTrace();
 				}
+			}
+			try {
+				odometerRight.close();
+				odometerLeft.close();
+			} catch (IOException e) {
+				System.err.println("Couldn't close odometer streams at: ");
+				e.printStackTrace();
 			}
 		}
 	}
