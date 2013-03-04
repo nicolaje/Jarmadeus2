@@ -23,13 +23,17 @@ public class Jarmadeus {
 	 * - VIRTUAL (talks to the a simulator over a socket connection, using a defined protocol)
 	 */
 	private int mode;
+	private boolean isRealisticTiming;
+	
+	private String simulatorAddress;
 	
 	
-	// TODO: handle concurrency correctly
+	// TODO: handle concurrency correctly (synchronization)
 	private Jarmadeus(){
 		try {
 			Configuration p=new PropertiesConfiguration(FILE_NAME);
 			this.mode=p.getInt("mode");
+			this.isRealisticTiming=p.getBoolean("realistic_timing");
 		} catch (ConfigurationException e) {
 			// TODO: File does not exist, or ini file not correctly written: default config!
 			// throw error
@@ -44,5 +48,9 @@ public class Jarmadeus {
 	
 	public int getMode(){
 		return this.mode;
+	}
+	
+	public boolean isRealisticTiming(){
+		return this.isRealisticTiming;
 	}
 }
