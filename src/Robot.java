@@ -22,10 +22,12 @@ public class Robot {
 			sonarRightPort, sonarRightRightPort;
 	private int posePort;
 	private int actuatorPort;
+	private int odometerLeftPort,odometerRightPort;
 	private BufferedReader irLeft, irFront, irRight, irBack;
 	private BufferedReader sonarLeftLeft, sonarLeft, sonarFront, sonarRight,
 			sonarRightRight;
 	private BufferedReader pose;
+	private BufferedReader odometerLeft,odometerRight;
 	private PrintWriter actuator;
 
 	private double irLeftVal, irFrontVal, irRightVal, irBackVal;
@@ -35,6 +37,8 @@ public class Robot {
 
 	private int leftMotorSpeed;
 	private int rightMotorSpeed;
+	
+	private double leftOdometer,rightOdometer;
 
 	public Robot() throws UnknownHostException, IOException {
 		exitJVM = false;
@@ -105,6 +109,10 @@ public class Robot {
 					this.posePort = portNum;
 				else if (s.contains("actuator"))
 					this.actuatorPort = portNum;
+				else if(s.contains("odometerLeft"))
+					this.odometerLeftPort=portNum;
+				else if(s.contains("odometerRight"))
+					this.odometerRightPort=portNum;
 			}
 		}
 
@@ -292,16 +300,72 @@ public class Robot {
 
 	}
 
+	/**
+	 * Raw data comes like this:
+	 * {"point_list": [[0.8092199563980103, -0.14268717169761658, 6.868503987789154e-09],
+	 * [0.7967934608459473, -0.12619972229003906, -1.8742866814136505e-08],
+	 * [0.7848089933395386, -0.11029776930809021, -1.57160684466362e-09],
+	 * [0.7732341885566711, -0.09494107216596603, 3.026798367500305e-09],
+	 * [0.7620454430580139, -0.08009418100118637, -1.4319084584712982e-08],
+	 * [0.7512136101722717, -0.0657225176692009, 2.019805833697319e-08],
+	 * [0.7407174706459045, -0.05179598182439804, 1.6880221664905548e-08],
+	 * [0.7305356860160828, -0.038285549730062485, 6.170012056827545e-09],
+	 * [0.7168877124786377, -0.025034211575984955, -6.51925802230835e-09],
+	 * [0.7021054625511169, -0.01225524116307497, 1.123407855629921e-08],
+	 * [0.6903769373893738, 1.5861587598919868e-07, 7.566995918750763e-09],
+	 * [0.6815443634986877, 0.011896495707333088, -1.5308614820241928e-08],
+	 * [0.675529956817627, 0.023590171709656715, 4.249159246683121e-09],
+	 * [0.6723352074623108, 0.03523562476038933, 1.979060471057892e-09],
+	 * [0.6720442771911621, 0.04699396342039108, 2.2584572434425354e-08],
+	 * [0.7007721662521362, 0.06130960211157799, 2.2526364773511887e-08],
+	 * [0.7198054790496826, 0.07565464079380035, 4.540197551250458e-09], 
+	 * [0.739972710609436, 0.09085726737976074, 1.4319084584712982e-08],
+	 * [0.7614074349403381, 0.10700886696577072, -3.3760443329811096e-09],
+	 * [0.7842307686805725, 0.12420985847711563, 1.8510036170482635e-08],
+	 * [0.8086032271385193, 0.1425786167383194, 5.587935447692871e-09]],
+	 * "range_list": [0.8217033828442815, 0.8067254581430171,
+	 * 0.7925216147564504, 0.7790408381371291, 0.7662429105364056,
+	 * 0.754082914018034, 0.7425260507029732, 0.7315380616241877,
+	 * 0.7173245886189182, 0.7022122434754218, 0.6903767703344194,
+	 * 0.6816480319288748, 0.6759415933179908, 0.6732576944812676,
+	 * 0.6736852452993471, 0.7034488529933621, 0.7237702662767634,
+	 * 0.7455296460364584, 0.7688900589333294, 0.7940062184400948,
+	 * 0.8210772384791676]}
+	 * @param rawData
+	 * @return
+	 */
 	private double parseLaserData(String rawData) {
-
+		String range_list=rawData.split("\"range_list\": [")[1].replace("]", "").replace("}", "");
+		String list[]=range_list.split(",");
+		
+		// Find the shortest distance, it will be our detection
+		double min=Double.parseDouble(list[0]);
+		for(String val:list){
+			if(Double.parseDouble(val)<min)min=Double.parseDouble(val);
+		}
+		return min;
 	}
 
+	
 	private double parseOdometerData(String rawData) {
 
 	}
 
+	/**
+	 * Raw data comes like this:
+	 * {"x": -5.147782802581787,
+	 * "y": 3.084372043609619,
+	 * "z": 0.18506832420825958,
+	 * "yaw": 0.7329784035682678,
+	 * "pitch": 9.254169708583504e-05,
+	 * "roll": -0.0001192293711937964}
+	 * 
+	 * And we only want "yaw" angle (around Z axis)
+	 * @param rawData
+	 * @return
+	 */
 	private double parseOrientation(String rawData) {
-
+		return Double.parseDouble(rawData.split("\"yaw\":")[1].split(",")[0])*180./Math.PI;
 	}
 
 	/**
@@ -373,7 +437,7 @@ public class Robot {
 					.println("Couldn't read Sonar sensors through sockets at: ");
 					e.printStackTrace();
 				}
-				// Don't overload the Armadeus by alwas looping. Let's sleep a little.
+				// Don't overload the JVM by always looping. Let's sleep a little.
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
@@ -388,7 +452,49 @@ public class Robot {
 
 		@Override
 		public void run() {
-			
+			while(!exitJVM){
+				try {
+					if(pose.ready()){
+						heading=parseOrientation(pose.readLine());
+					}
+				} catch (IOException e1) {
+					System.err
+					.println("Couldn't read Compass sensors through sockets at: ");
+					e1.printStackTrace();
+				}
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					System.err.println("Couldn't sleep in PoseUpdater at: ");
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	class OdometerUpdater extends Thread{
+		@Override
+		public void run(){
+			while(!exitJVM){
+				try {
+					if(odometerLeft.ready()){
+						leftOdometer=parseOdometerData(odometerLeft.readLine());
+					}
+					if(odometerRight.ready()){
+						rightOdometer=parseOdometerData(odometerRight.readLine());
+					}
+				} catch (IOException e1) {
+					System.err
+					.println("Couldn't read Odometer sensors through sockets at: ");
+					e1.printStackTrace();
+				}
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					System.err.println("Couldn't sleep in Odometer at: ");
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 }
