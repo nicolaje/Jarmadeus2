@@ -156,6 +156,12 @@ public class Robot {
 			Socket actuatorSocket=new Socket(this.ipAdd,actuatorPort);
 			
 			actuator=new PrintWriter(new OutputStreamWriter(actuatorSocket.getOutputStream()));
+			
+			// Start the threads that will update the state of the robot !
+			new IRUpdater().start();
+			new SonarUpdater().start();
+			new PoseUpdater().start();
+			new OdometerUpdater().start();
 		} catch (UnknownHostException e) {
 			System.err.println("Wrong Simulation server IP Adress was given when initializing the sensors, at: ");
 			e.printStackTrace();
