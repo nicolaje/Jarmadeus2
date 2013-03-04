@@ -8,7 +8,7 @@ import java.net.UnknownHostException;
 
 public class Robot {
 	private boolean exitJVM;
-	
+
 	private String robotName;
 	private String ipAdd;
 
@@ -17,24 +17,27 @@ public class Robot {
 
 	private double speedLeft, speedRight;
 
-	private int irLeftPort,irFrontPort,irRightPort,irBackPort;
-	private int sonarLeftLeftPort,sonarLeftPort,sonarFrontPort,sonarRightPort,sonarRightRightPort;
+	private int irLeftPort, irFrontPort, irRightPort, irBackPort;
+	private int sonarLeftLeftPort, sonarLeftPort, sonarFrontPort,
+			sonarRightPort, sonarRightRightPort;
 	private int posePort;
 	private int actuatorPort;
-	private BufferedReader irLeft,irFront,irRight,irBack;
-	private BufferedReader sonarLeftLeft,sonarLeft,sonarFront,sonarRight,sonarRightRight;
+	private BufferedReader irLeft, irFront, irRight, irBack;
+	private BufferedReader sonarLeftLeft, sonarLeft, sonarFront, sonarRight,
+			sonarRightRight;
 	private BufferedReader pose;
 	private PrintWriter actuator;
-	
-	private double irLeftVal,irFrontVal,irRightVal,irBackVal;
-	private double sonarLeftLeftVal,sonarLeftVal,sonarFrontVal,sonarRightVal,sonarRightRightVal;
+
+	private double irLeftVal, irFrontVal, irRightVal, irBackVal;
+	private double sonarLeftLeftVal, sonarLeftVal, sonarFrontVal,
+			sonarRightVal, sonarRightRightVal;
 	private double heading;
-	
+
 	private int leftMotorSpeed;
 	private int rightMotorSpeed;
-	
+
 	public Robot() throws UnknownHostException, IOException {
-		exitJVM=false;
+		exitJVM = false;
 		robotName = Jarmadeus2.getInstance().getRobotName();
 		ipAdd = Jarmadeus2.getInstance().getServerAddress();
 
@@ -46,67 +49,82 @@ public class Robot {
 		boolean gotAnswer = false;
 
 		// Several clients can access the Simulation service,
-		// therefore, we have to make sure that we parse the answer WE asked for !
+		// therefore, we have to make sure that we parse the answer WE asked for
+		// !
 		while (!gotAnswer) {
 			// Retrieve all the parameters of this robot:
 			writer.write(robotName + " simulation get_all_stream_ports");
-			String answer=reader.readLine();
-			
+			String answer = reader.readLine();
+
 			// The answer looks like :
 			// robotName SUCCESS {"robot.sensorName": portNumber}
-			if(answer.contains(robotName)&&answer.contains("SUCCESS"))gotAnswer=true;
-			else{
+			if (answer.contains(robotName) && answer.contains("SUCCESS"))
+				gotAnswer = true;
+			else {
 				// the received buffer should be emptied here
 			}
 		}
 
-		
-		
 		speedLeft = 0;
 		speedRight = 0;
 	}
-	
+
 	/**
-	 * Answer will look like:
-	 * A SUCCESS {"r.sonarRight": 60001, "r.sonarFront": 60003, "r.sonarRightRight": 60004, "r.sonarLeftLeft": 60007, "r.irLeft": 60002, "r.sonarLeft": 60006, "r.irRight": 60000, "r.irBack": 60005, "r.irFront": 60008}
+	 * Answer will look like: A SUCCESS {"r.sonarRight": 60001, "r.sonarFront":
+	 * 60003, "r.sonarRightRight": 60004, "r.sonarLeftLeft": 60007, "r.irLeft":
+	 * 60002, "r.sonarLeft": 60006, "r.irRight": 60000, "r.irBack": 60005,
+	 * "r.irFront": 60008}
 	 */
-	private void parseStreamPorts(String answer){
-		answer=answer.split("{")[1].replace("}", "");
-		String[] sensors=answer.split(",");
-		for(String s:sensors){
-			
+	private void parseStreamPorts(String answer) {
+		answer = answer.split("{")[1].replace("}", "");
+		String[] sensors = answer.split(",");
+		for (String s : sensors) {
+
 			// Several robots might be listed
-			if(s.contains(robotName)){
-				int portNum=Integer.parseInt(s.split(":")[1]);
-				if(s.contains("sonarLeftLeft"))this.sonarLeftLeftPort=portNum;
-				else if(s.contains("sonarLeft"))this.sonarLeftPort=portNum;
-				else if(s.contains("sonarFront"))this.sonarFrontPort=portNum;
-				else if(s.contains("sonarRight"))this.sonarRightPort=portNum;
-				else if(s.contains("sonarRightRight"))this.sonarRightRightPort=portNum;
-				else if(s.contains("irLeft"))this.irLeftPort=portNum;
-				else if(s.contains("irRight"))this.irRightPort=portNum;
-				else if(s.contains("irFront"))this.irFrontPort=portNum;
-				else if(s.contains("irBack"))this.irBackPort=portNum;
-				else if(s.contains("pose"))this.posePort=portNum;
-				else if(s.contains("actuator"))this.actuatorPort=portNum;
+			if (s.contains(robotName)) {
+				int portNum = Integer.parseInt(s.split(":")[1]);
+				if (s.contains("sonarLeftLeft"))
+					this.sonarLeftLeftPort = portNum;
+				else if (s.contains("sonarLeft"))
+					this.sonarLeftPort = portNum;
+				else if (s.contains("sonarFront"))
+					this.sonarFrontPort = portNum;
+				else if (s.contains("sonarRight"))
+					this.sonarRightPort = portNum;
+				else if (s.contains("sonarRightRight"))
+					this.sonarRightRightPort = portNum;
+				else if (s.contains("irLeft"))
+					this.irLeftPort = portNum;
+				else if (s.contains("irRight"))
+					this.irRightPort = portNum;
+				else if (s.contains("irFront"))
+					this.irFrontPort = portNum;
+				else if (s.contains("irBack"))
+					this.irBackPort = portNum;
+				else if (s.contains("pose"))
+					this.posePort = portNum;
+				else if (s.contains("actuator"))
+					this.actuatorPort = portNum;
 			}
 		}
-		
+
 		// updates values of sonar sensors
-		// we will want all the sonars to have the same update frequency, otherwise this
+		// we will want all the sonars to have the same update frequency,
+		// otherwise this
 		// strategy will not work
-		
+
 		// updates values of IR sensors
-		// IR sensors should have the samed update frequency too (can be different from the frequency of the sonar sensors though)
-		
+		// IR sensors should have the samed update frequency too (can be
+		// different from the frequency of the sonar sensors though)
+
 		// updates the pose sensor
-		
+
 		// We make sure we close the sockets before exiting the program
-		Runtime.getRuntime().addShutdownHook(new Thread(){
-			
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+
 			@Override
-			public void run(){
-				exitJVM=true;
+			public void run() {
+				exitJVM = true;
 			}
 		});
 	}
@@ -285,42 +303,91 @@ public class Robot {
 	private double parseOrientation(String rawData) {
 
 	}
-	
+
 	/**
-	 * Updates the IR Sensors values as long as the JVM exists, and at least one
-	 * reader buffer is not empty
+	 * Updates the IR Sensors values as long as the JVM does not want to quit.
+	 * 
 	 * @author vjog
-	 *
+	 * 
 	 */
-	class IRUpdater extends Thread{
-		
+	class IRUpdater extends Thread {
+
 		@Override
-		public void run(){
+		public void run() {
 			try {
-				while(!exitJVM){
-					if((irBack.ready()||irLeft.ready()||irFront.ready()||irRight.ready())){
-						
+				while (!exitJVM) {
+					// Do not go in a blocking state (readLine() is blocking) if
+					// not at least one buffer
+					// is not empty. If we go in a blocking sate while the JVM
+					// is exiting, we might never close the socket.
+					if (irBack.ready()) {
+						irBackVal=convertIRDistance(parseLaserData(irBack.readLine()));
+					}
+					if (irLeft.ready()) {
+						irLeftVal=convertIRDistance(parseLaserData(irLeft.readLine()));
+					}
+					if (irFront.ready()) {
+						irFrontVal=convertIRDistance(parseLaserData(irFront.readLine()));
+					}
+					if (irRight.ready()) {
+						irRightVal=convertIRDistance(parseLaserData(irRight.readLine()));
 					}
 				}
 			} catch (IOException e) {
-				System.err.println("Couldn't read IR sensors through sockets at: ");
+				System.err
+						.println("Couldn't read IR sensors through sockets at: ");
+				e.printStackTrace();
+			}
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				System.err.println("Couldn't sleep in IRUpdater at: ");
 				e.printStackTrace();
 			}
 		}
 	}
-	
-	class SonarUpdater extends Thread{
-		
+
+	class SonarUpdater extends Thread {
+
 		@Override
-		public void run(){
-			
+		public void run() {
+			while(!exitJVM){
+				try {
+					if(sonarLeftLeft.ready()){
+						sonarLeftLeftVal=parseLaserData(sonarLeftLeft.readLine());
+					}
+					if(sonarLeft.ready()){
+						sonarLeftVal=parseLaserData(sonarLeft.readLine());
+					}
+					if(sonarFront.ready()){
+						sonarFrontVal=parseLaserData(sonarFront.readLine());
+					}
+					if(sonarRight.ready()){
+						sonarRightVal=parseLaserData(sonarRight.readLine());
+					}
+					if(sonarRightRight.ready()){
+						sonarRightRightVal=parseLaserData(sonarRightRight.readLine());
+					}
+				} catch (IOException e) {
+					System.err
+					.println("Couldn't read Sonar sensors through sockets at: ");
+					e.printStackTrace();
+				}
+				// Don't overload the Armadeus by alwas looping. Let's sleep a little.
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					System.err.println("Couldn't sleep in SonarUpdater at: ");
+					e.printStackTrace();
+				}
+			}
 		}
 	}
-	
-	class PoseUpdater extends Thread{
-		
+
+	class PoseUpdater extends Thread {
+
 		@Override
-		public void run(){
+		public void run() {
 			
 		}
 	}
