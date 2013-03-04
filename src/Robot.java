@@ -141,9 +141,11 @@ public class Robot {
 			irLeft=new BufferedReader(new InputStreamReader(irLeftSocket.getInputStream()));
 			irFront=new BufferedReader(new InputStreamReader(irFrontSocket.getInputStream()));
 			irRight=new BufferedReader(new InputStreamReader(irRightSocket.getInputStream()));
+			irBack=new BufferedReader(new InputStreamReader(irBackSocket.getInputStream()));
 			
 			// Channels to the Compass sensor:
 			Socket poseSocket=new Socket(this.ipAdd,posePort);
+			pose=new BufferedReader(new InputStreamReader(poseSocket.getInputStream()));
 			
 			// Channels to the Odometer sensors:
 			Socket odoLeftSocket=new Socket(this.ipAdd,odometerLeftPort);
