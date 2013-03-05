@@ -183,13 +183,14 @@ public class Robot {
 			Socket actuatorSocket = new Socket(this.ipAdd, actuatorPort);
 
 			actuator = new PrintWriter(new OutputStreamWriter(
-					actuatorSocket.getOutputStream()));
+					actuatorSocket.getOutputStream()),true);
 
 			// Start the threads that will update the state of the robot !
 			new IRUpdater().start();
 			new SonarUpdater().start();
 			new PoseUpdater().start();
 			new OdometerUpdater().start();
+			new ActuatorUpdater().start();
 		} catch (UnknownHostException e) {
 			System.err
 					.println("Wrong Simulation server IP Adress was given when initializing the sensors, at: ");
@@ -270,22 +271,38 @@ public class Robot {
 		return heading;
 	}
 
+	/**
+	 * 
+	 * @param speed
+	 *            comprise in [-1; 1]
+	 */
 	public void setSpeedLeft(double speed) {
-
-	}
-
-	public void setSetSpeedRight(double speed) {
-
+		if (speed <= 1 && speed >= -1)
+			this.speedLeft = speed;
+		else
+			speedLeft = 0;
 	}
 
 	/**
-	 * Assuming a JOG wheel measures ~2.5cm radius,
-	 * and the odometer ticks 576 ticks per rotation
+	 * 
+	 * @param speed
+	 */
+	public void setSetSpeedRight(double speed) {
+		if (speed <= 1 && speed >= -1)
+			this.speedRight = speed;
+		else
+			speedRight = 0;
+	}
+
+	/**
+	 * Assuming a JOG wheel measures ~2.5cm radius, and the odometer ticks 576
+	 * ticks per rotation
+	 * 
 	 * @param dS
 	 * @return
 	 */
 	private int convertOdometerToTicks(double dS) {
-		return (int)(576*dS/(2*Math.PI*0.025));
+		return (int) (576 * dS / (2 * Math.PI * 0.025));
 	}
 
 	/**
@@ -370,7 +387,6 @@ public class Robot {
 		String tuples[] = rawData.replace("{", "").split(",");
 		double x = Double.parseDouble(tuples[0].split(":")[1]);
 		double y = Double.parseDouble(tuples[1].split(":")[1]);
-		System.err.println("Odometer: "+Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
 		return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
 	}
 
@@ -386,7 +402,7 @@ public class Robot {
 	 */
 	private double parseOrientation(String rawData) {
 		return (Double.parseDouble(rawData.split("\"yaw\":")[1].split(",")[0])
-				* 180. / Math.PI+360)%360;
+				* 180. / Math.PI + 360) % 360;
 	}
 
 	/**
@@ -561,6 +577,31 @@ public class Robot {
 				System.err.println("Couldn't close odometer streams at: ");
 				e.printStackTrace();
 			}
+		}
+	}
+
+	class ActuatorUpdater extends Thread {
+		@Override
+		public void run() {
+			while (!exitJVM) {
+
+				/*
+				 * (V,W)=[1/2 1/2; 1/2d -1/2d].(VRight,VLeft) d being half the
+				 * lenght of the axle-tree (0.135m here)
+				 */
+				double v = (Robot.this.speedLeft + Robot.this.speedRight) / 2;
+				double w = (Robot.this.speedRight - Robot.this.speedLeft)
+						/ (2 * 0.135);
+				actuator.println("{\"v\":" + v + ",\"w\":" + w + "}");
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					System.err
+							.println("Couldn't sleep in Actuator updater at: ");
+					e.printStackTrace();
+				}
+			}
+			actuator.close();
 		}
 	}
 }
