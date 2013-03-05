@@ -250,12 +250,14 @@ public class Robot {
 
 	}
 
+	// TODO
 	private int convertOdometerToTicks(double dS){
-		
+		return 0;
 	}
 	
+	// TODO
 	private double convertIRDistance(double distance) {
-
+		return 0;
 	}
 
 	/**
