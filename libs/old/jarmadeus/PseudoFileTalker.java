@@ -16,6 +16,7 @@ public class PseudoFileTalker {
 	{
 		this.debugMode=false;
 	}
+	
 	/**
 	 * @param pseudoFilePath   the path of the pseudofile to read 
 	 * @return the string read in the pseudofile
@@ -33,6 +34,7 @@ public class PseudoFileTalker {
 		}
 		return s;
 	}
+	
     /**
 	* @param pseudoFilePath the path of the pseudofile to write 
 	* @param data  the string to write in the pseudofile
