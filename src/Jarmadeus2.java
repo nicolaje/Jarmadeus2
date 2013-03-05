@@ -12,14 +12,14 @@ public class Jarmadeus2 {
 	}
 	
 	public boolean isSimulation(){
-		
+		return true;
 	}
 	
 	public String getServerAddress(){
-		
+		return "127.0.0.1";
 	}
 	
 	public String getRobotName(){
-		
+		return "r";
 	}
 }

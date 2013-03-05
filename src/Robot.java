@@ -1,4 +1,3 @@
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -41,33 +40,40 @@ public class Robot {
 	
 	private int leftOdometer,rightOdometer;
 
-	public Robot() throws UnknownHostException, IOException {
+	public Robot(){
 		exitJVM = false;
 		robotName = Jarmadeus2.getInstance().getRobotName();
 		ipAdd = Jarmadeus2.getInstance().getServerAddress();
 
-		Socket socket = new Socket(ipAdd, 4000);
-		writer = new PrintWriter(socket.getOutputStream());
-		reader = new BufferedReader(new InputStreamReader(
-				socket.getInputStream()));
+		Socket socket;
+		try {
+			socket = new Socket(ipAdd, 4000);
+			writer = new PrintWriter(socket.getOutputStream());
+			reader = new BufferedReader(new InputStreamReader(
+					socket.getInputStream()));
 
-		boolean gotAnswer = false;
+			boolean gotAnswer = false;
 
-		// Several clients can access the Simulation service,
-		// therefore, we have to make sure that we parse the answer WE asked for
-		// !
-		while (!gotAnswer) {
-			// Retrieve all the parameters of this robot:
-			writer.write(robotName + " simulation get_all_stream_ports");
-			String answer = reader.readLine();
+			// Several clients can access the Simulation service,
+			// therefore, we have to make sure that we parse the answer WE asked for
+			// !
+			while (!gotAnswer) {
+				// Retrieve all the parameters of this robot:
+				writer.write(robotName + " simulation get_all_stream_ports");
+				String answer = reader.readLine();
 
-			// The answer looks like :
-			// robotName SUCCESS {"robot.sensorName": portNumber}
-			if (answer.contains(robotName) && answer.contains("SUCCESS"))
-				gotAnswer = true;
-			else {
-				// the received buffer should be emptied here
+				// The answer looks like :
+				// robotName SUCCESS {"robot.sensorName": portNumber}
+				if (answer.contains(robotName) && answer.contains("SUCCESS"))
+					gotAnswer = true;
+				else {
+					// the received buffer should be emptied here
+				}
 			}
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 
 		speedLeft = 0;
