@@ -15,19 +15,26 @@ public class Jarmadeus2 {
 	private String serverAddress;
 	private String robotName;
 	
-	private Robot robot;
+	private JOG robot;
 	
 	private Jarmadeus2(){
+		serverAddress=null;
+		robotName=null;
 		doParseSettingsFile();
-		this.robot=new Robot(robotName, serverAddress);
+		if(isSimulation&&!(serverAddress==null||robotName==null))this.robot=new JOG(robotName, serverAddress);
 	}
 	
-	public static Jarmadeus2 getInstance(){
+	protected static Jarmadeus2 getInstance(){
 		if(instance==null)instance=new Jarmadeus2();
 		return instance;
 	}
 	
-	protected Robot getRobot(){
+	/**
+	 * This Robot instance is attached to the Java Runtime, and will be used by the FPGATalker, I2CTalker etc...
+	 * to figure out with which robot in the simulator they are supposed to talk.
+	 * @return
+	 */
+	protected JOG getRobot(){
 		return this.robot;
 	}
 	
