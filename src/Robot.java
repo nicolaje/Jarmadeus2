@@ -49,7 +49,7 @@ public class Robot {
 		Socket socket;
 		try {
 			socket = new Socket(ipAdd, 4000);
-			writer = new PrintWriter(socket.getOutputStream());
+			writer = new PrintWriter(socket.getOutputStream(),true);
 			reader = new BufferedReader(new InputStreamReader(
 					socket.getInputStream()));
 			System.out.println("Got inputStream");
@@ -60,8 +60,7 @@ public class Robot {
 			// !
 			while (!gotAnswer) {
 				// Retrieve all the parameters of this robot:
-				writer.write(robotName + " simulation get_all_stream_ports");
-				writer.flush();
+				writer.println(robotName + " simulation get_all_stream_ports");
 				
 				System.out.println("request sent");
 				
