@@ -39,7 +39,7 @@ public class Robot {
 	private int leftMotorSpeed;
 	private int rightMotorSpeed;
 	
-	private double leftOdometer,rightOdometer;
+	private int leftOdometer,rightOdometer;
 
 	public Robot() throws UnknownHostException, IOException {
 		exitJVM = false;
@@ -250,6 +250,10 @@ public class Robot {
 
 	}
 
+	private int convertOdometerToTicks(double dS){
+		
+	}
+	
 	private double convertIRDistance(double distance) {
 
 	}
@@ -473,10 +477,10 @@ public class Robot {
 			while(!exitJVM){
 				try {
 					if(odometerLeft.ready()){
-						leftOdometer=parseOdometerData(odometerLeft.readLine());
+						leftOdometer=convertOdometerToTicks(parseOdometerData(odometerLeft.readLine()));
 					}
 					if(odometerRight.ready()){
-						rightOdometer=parseOdometerData(odometerRight.readLine());
+						rightOdometer=convertOdometerToTicks(parseOdometerData(odometerRight.readLine()));
 					}
 				} catch (IOException e1) {
 					System.err
