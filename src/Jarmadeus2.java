@@ -16,7 +16,7 @@ public class Jarmadeus2 {
 	}
 	
 	public String getServerAddress(){
-		return "127.0.0.1";
+		return "localhost";
 	}
 	
 	public String getRobotName(){

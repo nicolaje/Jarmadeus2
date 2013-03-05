@@ -41,17 +41,18 @@ public class Robot {
 	private int leftOdometer,rightOdometer;
 
 	public Robot(){
+		System.out.println("Entered Constructor");
 		exitJVM = false;
 		robotName = Jarmadeus2.getInstance().getRobotName();
 		ipAdd = Jarmadeus2.getInstance().getServerAddress();
-
+		System.out.println("Prior socket declaration");
 		Socket socket;
 		try {
 			socket = new Socket(ipAdd, 4000);
 			writer = new PrintWriter(socket.getOutputStream());
 			reader = new BufferedReader(new InputStreamReader(
 					socket.getInputStream()));
-
+			System.out.println("Got inputStream");
 			boolean gotAnswer = false;
 
 			// Several clients can access the Simulation service,
@@ -60,8 +61,13 @@ public class Robot {
 			while (!gotAnswer) {
 				// Retrieve all the parameters of this robot:
 				writer.write(robotName + " simulation get_all_stream_ports");
+				writer.flush();
+				
+				System.out.println("request sent");
+				
 				String answer = reader.readLine();
-
+				System.out.println("Answer: "+answer);
+				
 				// The answer looks like :
 				// robotName SUCCESS {"robot.sensorName": portNumber}
 				if (answer.contains(robotName) && answer.contains("SUCCESS"))
@@ -236,11 +242,11 @@ public class Robot {
 		return sonarRightRightVal;
 	}
 
-	public double getOdometerLeft() {
+	public int getOdometerLeft() {
 		return leftOdometer;
 	}
 
-	public double getOdometerRight() {
+	public int getOdometerRight() {
 		return rightOdometer;
 	}
 
@@ -256,7 +262,7 @@ public class Robot {
 
 	}
 
-	// TODO
+	// TODO: 576 ticks per rotation
 	private int convertOdometerToTicks(double dS){
 		return 0;
 	}
