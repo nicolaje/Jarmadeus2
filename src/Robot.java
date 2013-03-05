@@ -300,9 +300,24 @@ public class Robot {
 		return min;
 	}
 
-	
+	/**
+	 * Data comes like this:
+	 * {"x": 4.00009822845459, "y": 3.6651668548583984, "z": 0.12570199370384216,
+	 * "yaw": 2.7408053874969482, "pitch": 5.590641012531705e-05, "roll": 6.16510515101254e-05,
+	 * "vx": 0.4537213444709778, "vy": 0.03767376393079758, "vz": 0.00046007055789232254,
+	 * "wz": 0.19901759922504425, "wy": -7.06071950844489e-05, "wx": 0.005811607465147972}
+	 * 
+	 * We only want the distance traveled by the sensor (sqrt(sqr(x)+sqr(y)))
+	 * Warning: X and Y in the world referential, not the local robot referential (otherwise "x" would be enough)
+	 * 
+	 * @param rawData
+	 * @return
+	 */
 	private double parseOdometerData(String rawData) {
-
+		String tuples[]=rawData.replace("{", "").split(",");
+		double x=Double.parseDouble(tuples[0].split(":")[1]);
+		double y=Double.parseDouble(tuples[1].split(":")[1]);
+		return Math.sqrt(Math.pow(x, 2)+Math.pow(y, 2));
 	}
 
 	/**
