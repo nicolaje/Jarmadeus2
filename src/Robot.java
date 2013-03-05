@@ -278,9 +278,14 @@ public class Robot {
 
 	}
 
-	// TODO: 576 ticks per rotation
+	/**
+	 * Assuming a JOG wheel measures ~2.5cm radius,
+	 * and the odometer ticks 576 ticks per rotation
+	 * @param dS
+	 * @return
+	 */
 	private int convertOdometerToTicks(double dS) {
-		return 0;
+		return (int)(576*dS/(2*Math.PI*0.025));
 	}
 
 	/**
@@ -365,6 +370,7 @@ public class Robot {
 		String tuples[] = rawData.replace("{", "").split(",");
 		double x = Double.parseDouble(tuples[0].split(":")[1]);
 		double y = Double.parseDouble(tuples[1].split(":")[1]);
+		System.err.println("Odometer: "+Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
 		return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
 	}
 
