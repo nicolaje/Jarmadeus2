@@ -287,7 +287,7 @@ public class Robot {
 	 * 
 	 * @param speed
 	 */
-	public void setSetSpeedRight(double speed) {
+	public void setSpeedRight(double speed) {
 		if (speed <= 1 && speed >= -1)
 			this.speedRight = speed;
 		else
