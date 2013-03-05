@@ -8,7 +8,7 @@ import java.net.Socket;
 public class Test {
 	public static void main(String[] args){
 		
-		Robot r=new Robot();
+		Robot r=new Robot("r","localhost");
 		
 		// Let's see some sensors outputs
 		for(int i=0; i<10; i++){

@@ -40,12 +40,12 @@ public class Robot {
 
 	private int leftOdometer, rightOdometer;
 
-	public Robot() {
+	public Robot(String robotName, String ipAddress) {
 		exitJVM = false;
-		robotName = Jarmadeus2.getInstance().getRobotName();
-		ipAdd = Jarmadeus2.getInstance().getServerAddress();
+		this.robotName = robotName; //Jarmadeus2.getInstance().getRobotName();
+		this.ipAdd = ipAddress; //Jarmadeus2.getInstance().getServerAddress();
 		Socket socket;
-
+		
 		String answer = null;
 
 		try {
@@ -219,6 +219,7 @@ public class Robot {
 			public void run() {
 				exitJVM = true;
 				actuator.close();
+				Robot.this.close();
 			}
 		});
 	}
@@ -405,6 +406,13 @@ public class Robot {
 				* 180. / Math.PI + 360) % 360;
 	}
 
+	/**
+	 * Close all the streams to the robot/sensors
+	 */
+	public void close(){
+		this.exitJVM=true;
+	}
+	
 	/**
 	 * Updates the IR Sensors values as long as the JVM does not want to quit.
 	 * 

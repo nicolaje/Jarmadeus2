@@ -15,8 +15,11 @@ public class Jarmadeus2 {
 	private String serverAddress;
 	private String robotName;
 	
+	private Robot robot;
+	
 	private Jarmadeus2(){
 		doParseSettingsFile();
+		this.robot=new Robot(robotName, serverAddress);
 	}
 	
 	public static Jarmadeus2 getInstance(){
@@ -24,16 +27,20 @@ public class Jarmadeus2 {
 		return instance;
 	}
 	
-	public boolean isSimulation(){
-		return true;
+	protected Robot getRobot(){
+		return this.robot;
 	}
 	
-	public String getServerAddress(){
-		return "localhost";
+	protected boolean isSimulation(){
+		return isSimulation;
 	}
 	
-	public String getRobotName(){
-		return "r";
+	protected String getServerAddress(){
+		return serverAddress;
+	}
+	
+	protected String getRobotName(){
+		return robotName;
 	}
 	
 	/**
@@ -51,6 +58,7 @@ public class Jarmadeus2 {
 					else if(split[0].contains("robot_name"))robotName=split[1].replaceAll("\\s", "");
 				}
 			}
+			reader.close();
 		} catch (FileNotFoundException e) {
 			System.err.println("Couldn't find "+SETTINGS_FILE_NAME+" next to your program. Using default settings instead. At:");
 			// TODO
