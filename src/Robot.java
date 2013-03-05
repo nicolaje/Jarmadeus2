@@ -40,37 +40,37 @@ public class Robot {
 
 	private int leftOdometer, rightOdometer;
 
-	public Robot(){
+	public Robot() {
 		exitJVM = false;
 		robotName = Jarmadeus2.getInstance().getRobotName();
 		ipAdd = Jarmadeus2.getInstance().getServerAddress();
 		Socket socket;
 
-		String answer=null;
-		
+		String answer = null;
+
 		try {
 			socket = new Socket(ipAdd, 4000);
-			writer = new PrintWriter(socket.getOutputStream(),true);
+			writer = new PrintWriter(socket.getOutputStream(), true);
 			reader = new BufferedReader(new InputStreamReader(
 					socket.getInputStream()));
 			boolean gotAnswer = false;
-			
+
 			// Several clients can access the Simulation service,
-			// therefore, we have to make sure that we parse the answer WE asked for
+			// therefore, we have to make sure that we parse the answer WE asked
+			// for
 			// !
 			while (!gotAnswer) {
 				// Retrieve all the parameters of this robot:
 				writer.println(robotName + " simulation get_all_stream_ports");
 				answer = reader.readLine();
-				
+
 				// The answer looks like :
 				// robotName SUCCESS {"robot.sensorName": portNumber}
-				if (answer.contains(robotName) && answer.contains("SUCCESS")){
+				if (answer.contains(robotName) && answer.contains("SUCCESS")) {
 
 					gotAnswer = true;
 					parseStreamPorts(answer);
-				}
-				else {
+				} else {
 					// the received buffer should be emptied here
 				}
 			}
@@ -79,7 +79,7 @@ public class Robot {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		speedLeft = 0;
 		speedRight = 0;
 	}
@@ -102,7 +102,7 @@ public class Robot {
 				if (s.contains("sonarLeftLeft"))
 					this.sonarLeftLeftPort = portNum;
 				else if (s.contains("sonarRightRight"))
-					this.sonarRightRightPort = portNum;	
+					this.sonarRightRightPort = portNum;
 				else if (s.contains("sonarLeft"))
 					this.sonarLeftPort = portNum;
 				else if (s.contains("sonarFront"))
@@ -180,7 +180,6 @@ public class Robot {
 					odoRightSocket.getInputStream()));
 
 			// Channel to the actuator:
-			System.out.println("ActuatorPort! "+actuatorPort);
 			Socket actuatorSocket = new Socket(this.ipAdd, actuatorPort);
 
 			actuator = new PrintWriter(new OutputStreamWriter(
@@ -284,9 +283,19 @@ public class Robot {
 		return 0;
 	}
 
-	// TODO
+	/**
+	 * From the datasheet, f(x)~=2.9061*e^(-0.066x) with x in cm, f(x) in V
+	 * 
+	 * @param distance
+	 * @return
+	 */
 	private double convertIRDistance(double distance) {
-		return 0;
+		if (distance >= 0.3)
+			return 0; // out of range
+		double cm = distance * 100.;
+		if (cm < 3)
+			return 0; // there is a threshold with the sensor
+		return 2.9061 * Math.exp(-0.066 * cm);
 	}
 
 	/**
@@ -324,8 +333,8 @@ public class Robot {
 	 * @return
 	 */
 	private double parseLaserData(String rawData) {
-		String range_list = rawData.split("\"range_list\": \\[")[1].replaceAll("\\]",
-				"").replaceAll("\\}", "");
+		String range_list = rawData.split("\"range_list\": \\[")[1].replaceAll(
+				"\\]", "").replaceAll("\\}", "");
 		String list[] = range_list.split(",");
 
 		// Find the shortest distance, it will be our detection
@@ -370,8 +379,8 @@ public class Robot {
 	 * @return
 	 */
 	private double parseOrientation(String rawData) {
-		return Double.parseDouble(rawData.split("\"yaw\":")[1].split(",")[0])
-				* 180. / Math.PI;
+		return (Double.parseDouble(rawData.split("\"yaw\":")[1].split(",")[0])
+				* 180. / Math.PI+360)%360;
 	}
 
 	/**
@@ -438,21 +447,24 @@ public class Robot {
 			while (!exitJVM) {
 				try {
 					if (sonarLeftLeft.ready()) {
-						sonarLeftLeftVal = parseLaserData(sonarLeftLeft
-								.readLine());
+						double v = parseLaserData(sonarLeftLeft.readLine());
+						sonarLeftLeftVal = v >= 3.0 ? 0 : v;
 					}
 					if (sonarLeft.ready()) {
-						sonarLeftVal = parseLaserData(sonarLeft.readLine());
+						double v = parseLaserData(sonarLeft.readLine());
+						sonarLeftVal = v >= 3.0 ? 0 : v;
 					}
 					if (sonarFront.ready()) {
-						sonarFrontVal = parseLaserData(sonarFront.readLine());
+						double v = parseLaserData(sonarFront.readLine());
+						sonarFrontVal = v >= 3.0 ? 0 : v;
 					}
 					if (sonarRight.ready()) {
-						sonarRightVal = parseLaserData(sonarRight.readLine());
+						double v = parseLaserData(sonarRight.readLine());
+						sonarRightVal = v >= 3.0 ? 0 : v;
 					}
 					if (sonarRightRight.ready()) {
-						sonarRightRightVal = parseLaserData(sonarRightRight
-								.readLine());
+						double v = parseLaserData(sonarRightRight.readLine());
+						sonarRightRightVal = v >= 3.0 ? 0 : v;
 					}
 				} catch (IOException e) {
 					System.err
