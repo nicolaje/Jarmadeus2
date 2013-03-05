@@ -22,12 +22,12 @@ public class Robot {
 			sonarRightPort, sonarRightRightPort;
 	private int posePort;
 	private int actuatorPort;
-	private int odometerLeftPort,odometerRightPort;
+	private int odometerLeftPort, odometerRightPort;
 	private BufferedReader irLeft, irFront, irRight, irBack;
 	private BufferedReader sonarLeftLeft, sonarLeft, sonarFront, sonarRight,
 			sonarRightRight;
 	private BufferedReader pose;
-	private BufferedReader odometerLeft,odometerRight;
+	private BufferedReader odometerLeft, odometerRight;
 	private PrintWriter actuator;
 
 	private double irLeftVal, irFrontVal, irRightVal, irBackVal;
@@ -37,8 +37,8 @@ public class Robot {
 
 	private int leftMotorSpeed;
 	private int rightMotorSpeed;
-	
-	private int leftOdometer,rightOdometer;
+
+	private int leftOdometer, rightOdometer;
 
 	public Robot(){
 		System.out.println("Entered Constructor");
@@ -47,6 +47,9 @@ public class Robot {
 		ipAdd = Jarmadeus2.getInstance().getServerAddress();
 		System.out.println("Prior socket declaration");
 		Socket socket;
+
+		String answer=null;
+		
 		try {
 			socket = new Socket(ipAdd, 4000);
 			writer = new PrintWriter(socket.getOutputStream(),true);
@@ -54,7 +57,7 @@ public class Robot {
 					socket.getInputStream()));
 			System.out.println("Got inputStream");
 			boolean gotAnswer = false;
-
+			
 			// Several clients can access the Simulation service,
 			// therefore, we have to make sure that we parse the answer WE asked for
 			// !
@@ -64,13 +67,16 @@ public class Robot {
 				
 				System.out.println("request sent");
 				
-				String answer = reader.readLine();
+				answer = reader.readLine();
 				System.out.println("Answer: "+answer);
 				
 				// The answer looks like :
 				// robotName SUCCESS {"robot.sensorName": portNumber}
-				if (answer.contains(robotName) && answer.contains("SUCCESS"))
+				if (answer.contains(robotName) && answer.contains("SUCCESS")){
+
 					gotAnswer = true;
+					parseStreamPorts(answer);
+				}
 				else {
 					// the received buffer should be emptied here
 				}
@@ -80,7 +86,7 @@ public class Robot {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
+		
 		speedLeft = 0;
 		speedRight = 0;
 	}
@@ -92,23 +98,30 @@ public class Robot {
 	 * "r.irFront": 60008}
 	 */
 	private void parseStreamPorts(String answer) {
-		answer = answer.split("{")[1].replace("}", "");
+		answer = answer.split("\\{")[1].replaceAll("[}]", "");
 		String[] sensors = answer.split(",");
 		for (String s : sensors) {
 
 			// Several robots might be listed
 			if (s.contains(robotName)) {
-				int portNum = Integer.parseInt(s.split(":")[1]);
+				int portNum = Integer.parseInt(s.split(":")[1].replaceAll(
+						"\\s", "")); // \\s to remove whitespaces
+				System.out.println("PortNum: "+portNum);
+				System.out.println("s: "+s);
 				if (s.contains("sonarLeftLeft"))
 					this.sonarLeftLeftPort = portNum;
+				else if (s.contains("sonarRightRight")){
+					this.sonarRightRightPort = portNum;	
+					System.err.println("YEAH");
+				}
 				else if (s.contains("sonarLeft"))
 					this.sonarLeftPort = portNum;
 				else if (s.contains("sonarFront"))
 					this.sonarFrontPort = portNum;
-				else if (s.contains("sonarRight"))
+				else if (s.contains("sonarRight")){
+					System.err.println("YO");
 					this.sonarRightPort = portNum;
-				else if (s.contains("sonarRightRight"))
-					this.sonarRightRightPort = portNum;
+				}
 				else if (s.contains("irLeft"))
 					this.irLeftPort = portNum;
 				else if (s.contains("irRight"))
@@ -121,68 +134,86 @@ public class Robot {
 					this.posePort = portNum;
 				else if (s.contains("actuator"))
 					this.actuatorPort = portNum;
-				else if(s.contains("odometerLeft"))
-					this.odometerLeftPort=portNum;
-				else if(s.contains("odometerRight"))
-					this.odometerRightPort=portNum;
+				else if (s.contains("odometerLeft"))
+					this.odometerLeftPort = portNum;
+				else if (s.contains("odometerRight"))
+					this.odometerRightPort = portNum;
 			}
 		}
 
 		// Open the sockets to the sensors
 		try {
 			// Channels to the sonar sensors
-			Socket sonarLeftLeftSocket=new Socket(this.ipAdd, sonarLeftLeftPort);
-			Socket sonarLeftSocket=new Socket(this.ipAdd, sonarLeftPort);
-			Socket sonarFrontSocket=new Socket(this.ipAdd, sonarFrontPort);
-			Socket sonarRightSocket=new Socket(this.ipAdd, sonarRightPort);
-			Socket sonarRightRightSocket=new Socket(this.ipAdd, sonarRightRightPort);
-			
-			sonarLeftLeft=new BufferedReader(new InputStreamReader(sonarLeftLeftSocket.getInputStream()));
-			sonarLeft=new BufferedReader(new InputStreamReader(sonarLeftSocket.getInputStream()));
-			sonarFront=new BufferedReader(new InputStreamReader(sonarFrontSocket.getInputStream()));
-			sonarRight=new BufferedReader(new InputStreamReader(sonarRightSocket.getInputStream()));
-			sonarRightRight=new BufferedReader(new InputStreamReader(sonarRightRightSocket.getInputStream()));
-			
+			Socket sonarLeftLeftSocket = new Socket(this.ipAdd,
+					sonarLeftLeftPort);
+			Socket sonarLeftSocket = new Socket(this.ipAdd, sonarLeftPort);
+			Socket sonarFrontSocket = new Socket(this.ipAdd, sonarFrontPort);
+			Socket sonarRightSocket = new Socket(this.ipAdd, sonarRightPort);
+			System.out.println("SonarRighRight! "+sonarRightRightPort);
+			Socket sonarRightRightSocket = new Socket(this.ipAdd,
+					sonarRightRightPort);
+
+			sonarLeftLeft = new BufferedReader(new InputStreamReader(
+					sonarLeftLeftSocket.getInputStream()));
+			sonarLeft = new BufferedReader(new InputStreamReader(
+					sonarLeftSocket.getInputStream()));
+			sonarFront = new BufferedReader(new InputStreamReader(
+					sonarFrontSocket.getInputStream()));
+			sonarRight = new BufferedReader(new InputStreamReader(
+					sonarRightSocket.getInputStream()));
+			sonarRightRight = new BufferedReader(new InputStreamReader(
+					sonarRightRightSocket.getInputStream()));
+
 			// Channels to the IR sensors
-			Socket irLeftSocket=new Socket(this.ipAdd, irLeftPort);
-			Socket irFrontSocket=new Socket(this.ipAdd, irFrontPort);
-			Socket irRightSocket=new Socket(this.ipAdd, irRightPort);
-			Socket irBackSocket=new Socket(this.ipAdd, irBackPort);
-			
-			irLeft=new BufferedReader(new InputStreamReader(irLeftSocket.getInputStream()));
-			irFront=new BufferedReader(new InputStreamReader(irFrontSocket.getInputStream()));
-			irRight=new BufferedReader(new InputStreamReader(irRightSocket.getInputStream()));
-			irBack=new BufferedReader(new InputStreamReader(irBackSocket.getInputStream()));
-			
+			Socket irLeftSocket = new Socket(this.ipAdd, irLeftPort);
+			Socket irFrontSocket = new Socket(this.ipAdd, irFrontPort);
+			Socket irRightSocket = new Socket(this.ipAdd, irRightPort);
+			Socket irBackSocket = new Socket(this.ipAdd, irBackPort);
+
+			irLeft = new BufferedReader(new InputStreamReader(
+					irLeftSocket.getInputStream()));
+			irFront = new BufferedReader(new InputStreamReader(
+					irFrontSocket.getInputStream()));
+			irRight = new BufferedReader(new InputStreamReader(
+					irRightSocket.getInputStream()));
+			irBack = new BufferedReader(new InputStreamReader(
+					irBackSocket.getInputStream()));
+
 			// Channels to the Compass sensor:
-			Socket poseSocket=new Socket(this.ipAdd,posePort);
-			pose=new BufferedReader(new InputStreamReader(poseSocket.getInputStream()));
-			
+			Socket poseSocket = new Socket(this.ipAdd, posePort);
+			pose = new BufferedReader(new InputStreamReader(
+					poseSocket.getInputStream()));
+
 			// Channels to the Odometer sensors:
-			Socket odoLeftSocket=new Socket(this.ipAdd,odometerLeftPort);
-			Socket odoRightSocket=new Socket(this.ipAdd,odometerRightPort);
-			
-			odometerLeft=new BufferedReader(new InputStreamReader(odoLeftSocket.getInputStream()));
-			odometerRight=new BufferedReader(new InputStreamReader(odoRightSocket.getInputStream()));
-			
+			Socket odoLeftSocket = new Socket(this.ipAdd, odometerLeftPort);
+			Socket odoRightSocket = new Socket(this.ipAdd, odometerRightPort);
+
+			odometerLeft = new BufferedReader(new InputStreamReader(
+					odoLeftSocket.getInputStream()));
+			odometerRight = new BufferedReader(new InputStreamReader(
+					odoRightSocket.getInputStream()));
+
 			// Channel to the actuator:
-			Socket actuatorSocket=new Socket(this.ipAdd,actuatorPort);
-			
-			actuator=new PrintWriter(new OutputStreamWriter(actuatorSocket.getOutputStream()));
-			
+//			Socket actuatorSocket = new Socket(this.ipAdd, actuatorPort);
+
+//			actuator = new PrintWriter(new OutputStreamWriter(
+//					actuatorSocket.getOutputStream()));
+
 			// Start the threads that will update the state of the robot !
 			new IRUpdater().start();
 			new SonarUpdater().start();
 			new PoseUpdater().start();
 			new OdometerUpdater().start();
 		} catch (UnknownHostException e) {
-			System.err.println("Wrong Simulation server IP Adress was given when initializing the sensors, at: ");
+			System.err
+					.println("Wrong Simulation server IP Adress was given when initializing the sensors, at: ");
 			e.printStackTrace();
 		} catch (IOException e) {
-			System.err.println("IO Exception when initializing the sensors at: ");
+			System.err
+					.println("IO Exception when initializing the sensors at: ");
 			e.printStackTrace();
 		}
-		
+
 		// updates values of sonar sensors
 		// we will want all the sonars to have the same update frequency,
 		// otherwise this
@@ -262,96 +293,100 @@ public class Robot {
 	}
 
 	// TODO: 576 ticks per rotation
-	private int convertOdometerToTicks(double dS){
+	private int convertOdometerToTicks(double dS) {
 		return 0;
 	}
-	
+
 	// TODO
 	private double convertIRDistance(double distance) {
 		return 0;
 	}
 
 	/**
-	 * Raw data comes like this:
-	 * {"point_list": [[0.8092199563980103, -0.14268717169761658, 6.868503987789154e-09],
-	 * [0.7967934608459473, -0.12619972229003906, -1.8742866814136505e-08],
-	 * [0.7848089933395386, -0.11029776930809021, -1.57160684466362e-09],
-	 * [0.7732341885566711, -0.09494107216596603, 3.026798367500305e-09],
-	 * [0.7620454430580139, -0.08009418100118637, -1.4319084584712982e-08],
-	 * [0.7512136101722717, -0.0657225176692009, 2.019805833697319e-08],
-	 * [0.7407174706459045, -0.05179598182439804, 1.6880221664905548e-08],
-	 * [0.7305356860160828, -0.038285549730062485, 6.170012056827545e-09],
-	 * [0.7168877124786377, -0.025034211575984955, -6.51925802230835e-09],
-	 * [0.7021054625511169, -0.01225524116307497, 1.123407855629921e-08],
-	 * [0.6903769373893738, 1.5861587598919868e-07, 7.566995918750763e-09],
-	 * [0.6815443634986877, 0.011896495707333088, -1.5308614820241928e-08],
-	 * [0.675529956817627, 0.023590171709656715, 4.249159246683121e-09],
-	 * [0.6723352074623108, 0.03523562476038933, 1.979060471057892e-09],
-	 * [0.6720442771911621, 0.04699396342039108, 2.2584572434425354e-08],
-	 * [0.7007721662521362, 0.06130960211157799, 2.2526364773511887e-08],
-	 * [0.7198054790496826, 0.07565464079380035, 4.540197551250458e-09], 
-	 * [0.739972710609436, 0.09085726737976074, 1.4319084584712982e-08],
-	 * [0.7614074349403381, 0.10700886696577072, -3.3760443329811096e-09],
-	 * [0.7842307686805725, 0.12420985847711563, 1.8510036170482635e-08],
-	 * [0.8086032271385193, 0.1425786167383194, 5.587935447692871e-09]],
-	 * "range_list": [0.8217033828442815, 0.8067254581430171,
-	 * 0.7925216147564504, 0.7790408381371291, 0.7662429105364056,
-	 * 0.754082914018034, 0.7425260507029732, 0.7315380616241877,
-	 * 0.7173245886189182, 0.7022122434754218, 0.6903767703344194,
-	 * 0.6816480319288748, 0.6759415933179908, 0.6732576944812676,
-	 * 0.6736852452993471, 0.7034488529933621, 0.7237702662767634,
-	 * 0.7455296460364584, 0.7688900589333294, 0.7940062184400948,
-	 * 0.8210772384791676]}
+	 * Raw data comes like this: {"point_list": [[0.8092199563980103,
+	 * -0.14268717169761658, 6.868503987789154e-09], [0.7967934608459473,
+	 * -0.12619972229003906, -1.8742866814136505e-08], [0.7848089933395386,
+	 * -0.11029776930809021, -1.57160684466362e-09], [0.7732341885566711,
+	 * -0.09494107216596603, 3.026798367500305e-09], [0.7620454430580139,
+	 * -0.08009418100118637, -1.4319084584712982e-08], [0.7512136101722717,
+	 * -0.0657225176692009, 2.019805833697319e-08], [0.7407174706459045,
+	 * -0.05179598182439804, 1.6880221664905548e-08], [0.7305356860160828,
+	 * -0.038285549730062485, 6.170012056827545e-09], [0.7168877124786377,
+	 * -0.025034211575984955, -6.51925802230835e-09], [0.7021054625511169,
+	 * -0.01225524116307497, 1.123407855629921e-08], [0.6903769373893738,
+	 * 1.5861587598919868e-07, 7.566995918750763e-09], [0.6815443634986877,
+	 * 0.011896495707333088, -1.5308614820241928e-08], [0.675529956817627,
+	 * 0.023590171709656715, 4.249159246683121e-09], [0.6723352074623108,
+	 * 0.03523562476038933, 1.979060471057892e-09], [0.6720442771911621,
+	 * 0.04699396342039108, 2.2584572434425354e-08], [0.7007721662521362,
+	 * 0.06130960211157799, 2.2526364773511887e-08], [0.7198054790496826,
+	 * 0.07565464079380035, 4.540197551250458e-09], [0.739972710609436,
+	 * 0.09085726737976074, 1.4319084584712982e-08], [0.7614074349403381,
+	 * 0.10700886696577072, -3.3760443329811096e-09], [0.7842307686805725,
+	 * 0.12420985847711563, 1.8510036170482635e-08], [0.8086032271385193,
+	 * 0.1425786167383194, 5.587935447692871e-09]], "range_list":
+	 * [0.8217033828442815, 0.8067254581430171, 0.7925216147564504,
+	 * 0.7790408381371291, 0.7662429105364056, 0.754082914018034,
+	 * 0.7425260507029732, 0.7315380616241877, 0.7173245886189182,
+	 * 0.7022122434754218, 0.6903767703344194, 0.6816480319288748,
+	 * 0.6759415933179908, 0.6732576944812676, 0.6736852452993471,
+	 * 0.7034488529933621, 0.7237702662767634, 0.7455296460364584,
+	 * 0.7688900589333294, 0.7940062184400948, 0.8210772384791676]}
+	 * 
 	 * @param rawData
 	 * @return
 	 */
 	private double parseLaserData(String rawData) {
-		String range_list=rawData.split("\"range_list\": [")[1].replace("]", "").replace("}", "");
-		String list[]=range_list.split(",");
-		
+		String range_list = rawData.split("\"range_list\": \\[")[1].replaceAll("\\]",
+				"").replaceAll("\\}", "");
+		String list[] = range_list.split(",");
+
 		// Find the shortest distance, it will be our detection
-		double min=Double.parseDouble(list[0]);
-		for(String val:list){
-			if(Double.parseDouble(val)<min)min=Double.parseDouble(val);
+		double min = Double.parseDouble(list[0]);
+		for (String val : list) {
+			if (Double.parseDouble(val) < min)
+				min = Double.parseDouble(val);
 		}
+		System.err.println("ParseLaser asked to parse:" + rawData);
+		System.err.println("And returned: " + min);
 		return min;
 	}
 
 	/**
-	 * Data comes like this:
-	 * {"x": 4.00009822845459, "y": 3.6651668548583984, "z": 0.12570199370384216,
-	 * "yaw": 2.7408053874969482, "pitch": 5.590641012531705e-05, "roll": 6.16510515101254e-05,
-	 * "vx": 0.4537213444709778, "vy": 0.03767376393079758, "vz": 0.00046007055789232254,
-	 * "wz": 0.19901759922504425, "wy": -7.06071950844489e-05, "wx": 0.005811607465147972}
+	 * Data comes like this: {"x": 4.00009822845459, "y": 3.6651668548583984,
+	 * "z": 0.12570199370384216, "yaw": 2.7408053874969482, "pitch":
+	 * 5.590641012531705e-05, "roll": 6.16510515101254e-05, "vx":
+	 * 0.4537213444709778, "vy": 0.03767376393079758, "vz":
+	 * 0.00046007055789232254, "wz": 0.19901759922504425, "wy":
+	 * -7.06071950844489e-05, "wx": 0.005811607465147972}
 	 * 
 	 * We only want the distance traveled by the sensor (sqrt(sqr(x)+sqr(y)))
-	 * Warning: X and Y in the world referential, not the local robot referential (otherwise "x" would be enough)
+	 * Warning: X and Y in the world referential, not the local robot
+	 * referential (otherwise "x" would be enough)
 	 * 
 	 * @param rawData
 	 * @return
 	 */
 	private double parseOdometerData(String rawData) {
-		String tuples[]=rawData.replace("{", "").split(",");
-		double x=Double.parseDouble(tuples[0].split(":")[1]);
-		double y=Double.parseDouble(tuples[1].split(":")[1]);
-		return Math.sqrt(Math.pow(x, 2)+Math.pow(y, 2));
+		String tuples[] = rawData.replace("{", "").split(",");
+		double x = Double.parseDouble(tuples[0].split(":")[1]);
+		double y = Double.parseDouble(tuples[1].split(":")[1]);
+		return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
 	}
 
 	/**
-	 * Raw data comes like this:
-	 * {"x": -5.147782802581787,
-	 * "y": 3.084372043609619,
-	 * "z": 0.18506832420825958,
-	 * "yaw": 0.7329784035682678,
-	 * "pitch": 9.254169708583504e-05,
-	 * "roll": -0.0001192293711937964}
+	 * Raw data comes like this: {"x": -5.147782802581787, "y":
+	 * 3.084372043609619, "z": 0.18506832420825958, "yaw": 0.7329784035682678,
+	 * "pitch": 9.254169708583504e-05, "roll": -0.0001192293711937964}
 	 * 
 	 * And we only want "yaw" angle (around Z axis)
+	 * 
 	 * @param rawData
 	 * @return
 	 */
 	private double parseOrientation(String rawData) {
-		return Double.parseDouble(rawData.split("\"yaw\":")[1].split(",")[0])*180./Math.PI;
+		return Double.parseDouble(rawData.split("\"yaw\":")[1].split(",")[0])
+				* 180. / Math.PI;
 	}
 
 	/**
@@ -366,22 +401,26 @@ public class Robot {
 		public void run() {
 			try {
 				while (!exitJVM) {
-					
+
 					// Do not go in a blocking state (readLine() is blocking) if
 					// not at least one buffer
 					// is not empty. If we go in a blocking sate while the JVM
 					// is exiting, we might never close the socket.
 					if (irBack.ready()) {
-						irBackVal=convertIRDistance(parseLaserData(irBack.readLine()));
+						irBackVal = convertIRDistance(parseLaserData(irBack
+								.readLine()));
 					}
 					if (irLeft.ready()) {
-						irLeftVal=convertIRDistance(parseLaserData(irLeft.readLine()));
+						irLeftVal = convertIRDistance(parseLaserData(irLeft
+								.readLine()));
 					}
 					if (irFront.ready()) {
-						irFrontVal=convertIRDistance(parseLaserData(irFront.readLine()));
+						irFrontVal = convertIRDistance(parseLaserData(irFront
+								.readLine()));
 					}
 					if (irRight.ready()) {
-						irRightVal=convertIRDistance(parseLaserData(irRight.readLine()));
+						irRightVal = convertIRDistance(parseLaserData(irRight
+								.readLine()));
 					}
 				}
 			} catch (IOException e) {
@@ -411,29 +450,32 @@ public class Robot {
 
 		@Override
 		public void run() {
-			while(!exitJVM){
+			while (!exitJVM) {
 				try {
-					if(sonarLeftLeft.ready()){
-						sonarLeftLeftVal=parseLaserData(sonarLeftLeft.readLine());
+					if (sonarLeftLeft.ready()) {
+						sonarLeftLeftVal = parseLaserData(sonarLeftLeft
+								.readLine());
 					}
-					if(sonarLeft.ready()){
-						sonarLeftVal=parseLaserData(sonarLeft.readLine());
+					if (sonarLeft.ready()) {
+						sonarLeftVal = parseLaserData(sonarLeft.readLine());
 					}
-					if(sonarFront.ready()){
-						sonarFrontVal=parseLaserData(sonarFront.readLine());
+					if (sonarFront.ready()) {
+						sonarFrontVal = parseLaserData(sonarFront.readLine());
 					}
-					if(sonarRight.ready()){
-						sonarRightVal=parseLaserData(sonarRight.readLine());
+					if (sonarRight.ready()) {
+						sonarRightVal = parseLaserData(sonarRight.readLine());
 					}
-					if(sonarRightRight.ready()){
-						sonarRightRightVal=parseLaserData(sonarRightRight.readLine());
+					if (sonarRightRight.ready()) {
+						sonarRightRightVal = parseLaserData(sonarRightRight
+								.readLine());
 					}
 				} catch (IOException e) {
 					System.err
-					.println("Couldn't read Sonar sensors through sockets at: ");
+							.println("Couldn't read Sonar sensors through sockets at: ");
 					e.printStackTrace();
 				}
-				// Don't overload the JVM by always looping. Let's sleep a little.
+				// Don't overload the JVM by always looping. Let's sleep a
+				// little.
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
@@ -458,14 +500,14 @@ public class Robot {
 
 		@Override
 		public void run() {
-			while(!exitJVM){
+			while (!exitJVM) {
 				try {
-					if(pose.ready()){
-						heading=parseOrientation(pose.readLine());
+					if (pose.ready()) {
+						heading = parseOrientation(pose.readLine());
 					}
 				} catch (IOException e1) {
 					System.err
-					.println("Couldn't read Compass sensors through sockets at: ");
+							.println("Couldn't read Compass sensors through sockets at: ");
 					e1.printStackTrace();
 				}
 				try {
@@ -483,21 +525,23 @@ public class Robot {
 			}
 		}
 	}
-	
-	class OdometerUpdater extends Thread{
+
+	class OdometerUpdater extends Thread {
 		@Override
-		public void run(){
-			while(!exitJVM){
+		public void run() {
+			while (!exitJVM) {
 				try {
-					if(odometerLeft.ready()){
-						leftOdometer=convertOdometerToTicks(parseOdometerData(odometerLeft.readLine()));
+					if (odometerLeft.ready()) {
+						leftOdometer = convertOdometerToTicks(parseOdometerData(odometerLeft
+								.readLine()));
 					}
-					if(odometerRight.ready()){
-						rightOdometer=convertOdometerToTicks(parseOdometerData(odometerRight.readLine()));
+					if (odometerRight.ready()) {
+						rightOdometer = convertOdometerToTicks(parseOdometerData(odometerRight
+								.readLine()));
 					}
 				} catch (IOException e1) {
 					System.err
-					.println("Couldn't read Odometer sensors through sockets at: ");
+							.println("Couldn't read Odometer sensors through sockets at: ");
 					e1.printStackTrace();
 				}
 				try {
