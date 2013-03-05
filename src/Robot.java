@@ -41,11 +41,9 @@ public class Robot {
 	private int leftOdometer, rightOdometer;
 
 	public Robot(){
-		System.out.println("Entered Constructor");
 		exitJVM = false;
 		robotName = Jarmadeus2.getInstance().getRobotName();
 		ipAdd = Jarmadeus2.getInstance().getServerAddress();
-		System.out.println("Prior socket declaration");
 		Socket socket;
 
 		String answer=null;
@@ -55,7 +53,6 @@ public class Robot {
 			writer = new PrintWriter(socket.getOutputStream(),true);
 			reader = new BufferedReader(new InputStreamReader(
 					socket.getInputStream()));
-			System.out.println("Got inputStream");
 			boolean gotAnswer = false;
 			
 			// Several clients can access the Simulation service,
@@ -64,11 +61,7 @@ public class Robot {
 			while (!gotAnswer) {
 				// Retrieve all the parameters of this robot:
 				writer.println(robotName + " simulation get_all_stream_ports");
-				
-				System.out.println("request sent");
-				
 				answer = reader.readLine();
-				System.out.println("Answer: "+answer);
 				
 				// The answer looks like :
 				// robotName SUCCESS {"robot.sensorName": portNumber}
@@ -106,22 +99,16 @@ public class Robot {
 			if (s.contains(robotName)) {
 				int portNum = Integer.parseInt(s.split(":")[1].replaceAll(
 						"\\s", "")); // \\s to remove whitespaces
-				System.out.println("PortNum: "+portNum);
-				System.out.println("s: "+s);
 				if (s.contains("sonarLeftLeft"))
 					this.sonarLeftLeftPort = portNum;
-				else if (s.contains("sonarRightRight")){
+				else if (s.contains("sonarRightRight"))
 					this.sonarRightRightPort = portNum;	
-					System.err.println("YEAH");
-				}
 				else if (s.contains("sonarLeft"))
 					this.sonarLeftPort = portNum;
 				else if (s.contains("sonarFront"))
 					this.sonarFrontPort = portNum;
-				else if (s.contains("sonarRight")){
-					System.err.println("YO");
+				else if (s.contains("sonarRight"))
 					this.sonarRightPort = portNum;
-				}
 				else if (s.contains("irLeft"))
 					this.irLeftPort = portNum;
 				else if (s.contains("irRight"))
@@ -149,7 +136,6 @@ public class Robot {
 			Socket sonarLeftSocket = new Socket(this.ipAdd, sonarLeftPort);
 			Socket sonarFrontSocket = new Socket(this.ipAdd, sonarFrontPort);
 			Socket sonarRightSocket = new Socket(this.ipAdd, sonarRightPort);
-			System.out.println("SonarRighRight! "+sonarRightRightPort);
 			Socket sonarRightRightSocket = new Socket(this.ipAdd,
 					sonarRightRightPort);
 
@@ -194,10 +180,11 @@ public class Robot {
 					odoRightSocket.getInputStream()));
 
 			// Channel to the actuator:
-//			Socket actuatorSocket = new Socket(this.ipAdd, actuatorPort);
+			System.out.println("ActuatorPort! "+actuatorPort);
+			Socket actuatorSocket = new Socket(this.ipAdd, actuatorPort);
 
-//			actuator = new PrintWriter(new OutputStreamWriter(
-//					actuatorSocket.getOutputStream()));
+			actuator = new PrintWriter(new OutputStreamWriter(
+					actuatorSocket.getOutputStream()));
 
 			// Start the threads that will update the state of the robot !
 			new IRUpdater().start();
@@ -347,8 +334,6 @@ public class Robot {
 			if (Double.parseDouble(val) < min)
 				min = Double.parseDouble(val);
 		}
-		System.err.println("ParseLaser asked to parse:" + rawData);
-		System.err.println("And returned: " + min);
 		return min;
 	}
 
